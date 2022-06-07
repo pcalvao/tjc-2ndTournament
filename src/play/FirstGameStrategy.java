@@ -18,7 +18,7 @@ import play.exception.InvalidStrategyException;
  *
  * In the last round we always defect, as there's no advantage in playing nice anymore.
  **********************************************************************************/
-public class MyStrategy extends Strategy {
+public class FirstGameStrategy extends Strategy {
 
 	private static final String P1_COOPERATE = "1:1:Cooperate";
 	private static final String P2_COOPERATE = "2:1:Cooperate";
