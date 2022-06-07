@@ -13,7 +13,7 @@ import gametree.*;
 import play.*;
 import play.exception.InvalidStrategyException;
 
-public class 3rdGameStrategy extends Strategy {
+public class ThirdGameStrategy extends Strategy {
 
     @Override
     public void execute() throws InterruptedException {
