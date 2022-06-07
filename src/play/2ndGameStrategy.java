@@ -11,7 +11,7 @@ import gametree.GameNode;
 import gametree.GameNodeDoesNotExistException;
 import play.exception.InvalidStrategyException;
 
-public class FiniteIterationsStrategy extends Strategy {
+public class 2ndGameStrategy extends Strategy {
 
     private List<GameNode> getReversePath(GameNode current) {
         try {
