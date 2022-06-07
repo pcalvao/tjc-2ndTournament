@@ -94,8 +94,8 @@ public class MinMax extends Strategy {
                 NormalFormGame game = new NormalFormGame(U1, U2, labelsP1, labelsP2);
                 game.showGame();
 
-                boolean player1 = false;
-                this.minMax(U1, U2, labelsP1, labelsP2, myStrategy, player1);
+                this.minMaxP1(U1, U2, labelsP1, labelsP2, myStrategy);
+                this.minMaxP2(U1, U2, labelsP1, labelsP2, myStrategy);
 
                 try {
                     this.provideStrategy(myStrategy);
@@ -142,94 +142,100 @@ public class MinMax extends Strategy {
         return -max;
     }
 
-    public void minMax(int[][] M1, int[][] M2, String[] labelsP1, String[] labelsP2, PlayStrategy myStrategy,
-            boolean player1) {
+    public void minMaxP1(int[][] M1, int[][] M2, String[] labelsP1, String[] labelsP2, PlayStrategy myStrategy) {
         int rows = M2.length;
         int cols = M2[0].length;
+        double res[];
+        double[] c = new double[rows + 1];
+        c[c.length - 1] = 1.0;
 
-        if (player1) {
-            double[] c = new double[rows + 1];
-            c[c.length - 1] = 1.0;
+        double[] b = new double[cols + 1];
+        b[b.length - 1] = 1.0;
 
-            double[] b = new double[cols + 1];
-            b[b.length - 1] = 1.0;
+        double[] lb = new double[rows + 1];
+        lb[lb.length - 1] = getLowerBound(M2);
 
-            double[] lb = new double[rows + 1];
-            lb[lb.length - 1] = getLowerBound(M2);
+        double[][] A = new double[cols + 1][rows + 1];
 
-            double[][] A = new double[cols + 1][rows + 1];
-
-            for (int i = 0; i < cols; i++) {
-                for (int j = 0; j < rows; j++) {
-                    A[i][j] = M2[j][i];
-                }
-                A[i][rows] = -1.0;
-            }
-
+        for (int i = 0; i < cols; i++) {
             for (int j = 0; j < rows; j++) {
-                A[cols][j] = 1.0;
+                A[i][j] = M2[j][i];
             }
-
-            LinearProgram lp = new LinearProgram(c);
-            lp.setMinProblem(true);
-
-            for (int i = 0; i < b.length - 1; i++) {
-                lp.addConstraint(new LinearSmallerThanEqualsConstraint(A[i], b[i], "c" + i));
-            }
-            lp.addConstraint(new LinearEqualsConstraint(A[b.length - 1], b[b.length - 1], "c" + (b.length - 1)));
-            lp.setLowerbound(lb);
-            showLP(lp);
-            double[] res = solveLP(lp);
-            showSolution(lp, res);
-            System.out.println("RESULTS P1:");
-            for (int i = 0; i < res.length - 1; i++) {
-                System.out.printf(labelsP1[i] + ": %.2f", res[i]);
-                System.out.println();
-            }
-        } else {
-            double[] c = new double[cols + 1];
-            c[c.length - 1] = 1.0;
-
-            double[] b = new double[rows + 1];
-            b[b.length - 1] = 1.0;
-
-            double[] lb = new double[cols + 1];
-            lb[lb.length - 1] = getLowerBound(M2);
-
-            double[][] A = new double[rows + 1][cols + 1];
-
-            for (int i = 0; i < rows; i++) {
-                for (int j = 0; j < cols; j++) {
-                    A[i][j] = M1[i][j];
-                }
-                A[i][cols] = -1.0;
-            }
-
-            printMatrixDouble(A);
-
-            for (int j = 0; j < cols; j++) {
-                A[rows][j] = 1.0;
-            }
-
-            LinearProgram lp = new LinearProgram(c);
-            lp.setMinProblem(true);
-
-            for (int i = 0; i < b.length - 1; i++) {
-                lp.addConstraint(new LinearSmallerThanEqualsConstraint(A[i], b[i], "c" + i));
-            }
-            lp.addConstraint(new LinearEqualsConstraint(A[b.length - 1], b[b.length - 1], "c" + (b.length - 1)));
-            lp.setLowerbound(lb);
-            showLP(lp);
-            double[] res = solveLP(lp);
-            showSolution(lp, res);
-            for (int i = 0; i < res.length - 1; i++) {
-                System.out.printf(labelsP2[i] + ": %.2f", res[i]);
-                System.out.println();
-            }
+            A[i][rows] = -1.0;
         }
 
-        setStrategy(1, labelsP1, myStrategy);
-        setStrategy(2, labelsP2, myStrategy);
+        for (int j = 0; j < rows; j++) {
+            A[cols][j] = 1.0;
+        }
+
+        LinearProgram lp = new LinearProgram(c);
+        lp.setMinProblem(true);
+
+        for (int i = 0; i < b.length - 1; i++) {
+            lp.addConstraint(new LinearSmallerThanEqualsConstraint(A[i], b[i], "c" + i));
+        }
+        lp.addConstraint(new LinearEqualsConstraint(A[b.length - 1], b[b.length - 1], "c" + (b.length - 1)));
+        lp.setLowerbound(lb);
+        showLP(lp);
+        res = solveLP(lp);
+        showSolution(lp, res);
+        System.out.println("RESULTS P1:");
+        for (int i = 0; i < res.length - 1; i++) {
+            System.out.printf(labelsP1[i] + ": %.2f", res[i]);
+            System.out.println();
+        }
+
+        setStrategy(1, labelsP1, res, myStrategy);
+
+    }
+
+    public void minMaxP2(int[][] M1, int[][] M2, String[] labelsP1, String[] labelsP2, PlayStrategy myStrategy) {
+        int rows = M2.length;
+        int cols = M2[0].length;
+        double res[];
+        double[] c = new double[cols + 1];
+        c[c.length - 1] = 1.0;
+
+        double[] b = new double[rows + 1];
+        b[b.length - 1] = 1.0;
+
+        double[] lb = new double[cols + 1];
+        lb[lb.length - 1] = getLowerBound(M2);
+
+        double[][] A = new double[rows + 1][cols + 1];
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                A[i][j] = M1[i][j];
+            }
+            A[i][cols] = -1.0;
+        }
+
+        printMatrixDouble(A);
+
+        for (int j = 0; j < cols; j++) {
+            A[rows][j] = 1.0;
+        }
+
+        LinearProgram lp = new LinearProgram(c);
+        lp.setMinProblem(true);
+
+        for (int i = 0; i < b.length - 1; i++) {
+            lp.addConstraint(new LinearSmallerThanEqualsConstraint(A[i], b[i], "c" + i));
+        }
+        lp.addConstraint(new LinearEqualsConstraint(A[b.length - 1], b[b.length - 1], "c" + (b.length - 1)));
+        lp.setLowerbound(lb);
+        showLP(lp);
+        res = solveLP(lp);
+        showSolution(lp, res);
+        System.out.println("RESULTS P2:");
+        for (int i = 0; i < res.length - 1; i++) {
+            System.out.printf(labelsP2[i] + ": %.2f", res[i]);
+            System.out.println();
+        }
+
+        setStrategy(2, labelsP2, res, myStrategy);
+
     }
 
     public void printMatrix(int[][] M) {
@@ -314,15 +320,18 @@ public class MinMax extends Strategy {
         }
     }
 
-    public double[] setStrategy(int P, String[] labels, PlayStrategy myStrategy) {
+    public double[] setStrategy(int P, String[] labels, double[] res, PlayStrategy myStrategy) {
         int n = labels.length;
         double[] strategy = new double[n];
-        for (int i = 0; i < n; i++)
+        for (int i = 0; i < n; i++) {
             strategy[i] = 0;
-        if (P == 1) { // if playing as player 1 then choose first action
-            strategy[0] = 1;
-        } else { // if playing as player 2 then choose first or second action randomly
-            strategy[0] = 1;
+            if (P == 1) { // if playing as player 1 then choose first action
+                strategy[i] = res[i];
+                System.out.println("PLAYER 1 PLAYS:" + res[i]);
+            } else { // if playing as player 2 then choose first or second action randomly
+                strategy[i] = res[i];
+                System.out.println("PLAYER 2 PLAYS:" + res[i]);
+            }
         }
         for (int i = 0; i < n; i++)
             myStrategy.put(labels[i], strategy[i]);
